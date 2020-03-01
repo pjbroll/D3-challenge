@@ -4,7 +4,7 @@ var svgWidth = 960;
 var svgHeight = 500;
 
 var margin = {
-  top: 20,
+  top: 40,
   right: 40,
   bottom: 90,
   left: 90
@@ -38,7 +38,7 @@ var chosenYAxis = "healthcare";
 function xScale(acsData, chosenXAxis) {
     // create scales
     var xLinearScale = d3.scaleLinear()
-      .domain([d3.min(acsData, d => d[chosenXAxis]) * 0.8,
+      .domain([d3.min(acsData, d => d[chosenXAxis]) * 0.9,
         d3.max(acsData, d => d[chosenXAxis]) * 1.2
       ])
       .range([0, width]);
@@ -52,8 +52,8 @@ function xScale(acsData, chosenXAxis) {
 function yScale(acsData, chosenYAxis) {
     // create scales
     var yLinearScale = d3.scaleLinear()
-      .domain([0, d3.max(acsData, d => d[chosenYAxis]) * 0.8,
-        d3.max(acsData, d => d[chosenYAxis]) * 1.2
+      .domain([0, d3.max(acsData, d => d[chosenYAxis]),
+        d3.max(acsData, d => d[chosenYAxis]) * 1.1
       ])
       .range([height, 0]);
 
@@ -83,24 +83,32 @@ function yScale(acsData, chosenYAxis) {
     return yAxis;
   }
   
-  // function used for updating circles group with a transition to
-  // new circles along X axis
-  function renderXCircles(circlesGroup, newXScale) {
+  // function used for updating circles group and text group  
+  // with a transition to new circles along X axis
+  function renderXCircles(circlesGroup, textGroup, newXScale) {
   
     circlesGroup.transition()
       .duration(1000)
       .attr("cx", d => newXScale(d[chosenXAxis]));
+    
+    textGroup.transition()
+      .duration(1000)
+      .attr("x", d => newXScale(d[chosenXAxis]));
   
     return circlesGroup;
   }
 
-    // function used for updating circles group with a transition to
-  // new circles along X axis
-  function renderYCircles(circlesGroup, newYScale) {
+  // function used for updating circles group and text group with a transition to
+  // with a transition to new circles along Y axis
+  function renderYCircles(circlesGroup, textGroup, newYScale) {
   
     circlesGroup.transition()
       .duration(1000)
       .attr("cy", d => newYScale(d[chosenYAxis]));
+
+    textGroup.transition()
+      .duration(1000)
+      .attr("y", d => newYScale(d[chosenYAxis]));  
   
     return circlesGroup;
   }
@@ -199,7 +207,7 @@ d3.csv("/assets/data/data.csv").then(function(acsData, err) {
         .attr("opacity", ".6");
 
     // add State abbrev to circles
-    chartGroup.selectAll("text.text-circles")
+    var textGroup = chartGroup.selectAll("text.text-circles")
         .data(acsData)
         .enter()
         .append("text")
@@ -288,7 +296,7 @@ d3.csv("/assets/data/data.csv").then(function(acsData, err) {
         xAxis = renderXAxes(xLinearScale, xAxis);
         console.log(xAxis);
         // updates circles with new x values
-        circlesGroup = renderXCircles(circlesGroup, xLinearScale);
+        circlesGroup = renderXCircles(circlesGroup, textGroup, xLinearScale);
 
         // updates tooltips with new info
         circlesGroup = updateToolTip(chosenXAxis, chosenYAxis, circlesGroup);
@@ -350,13 +358,13 @@ d3.csv("/assets/data/data.csv").then(function(acsData, err) {
         yAxis = renderYAxes(yLinearScale, yAxis);
         console.log(yAxis);
         // updates circles with new x values
-        circlesGroup = renderYCircles(circlesGroup, yLinearScale);
+        circlesGroup = renderYCircles(circlesGroup, textGroup, yLinearScale);
 
         // updates tooltips with new info
         circlesGroup = updateToolTip(chosenXAxis, chosenYAxis, circlesGroup);
 
         // changes classes to change bold text
-        if (chosenYAxis === "age") {
+        if (chosenYAxis === "smokes") {
           smokesLabel
             .classed("active", true)
             .classed("inactive", false);
